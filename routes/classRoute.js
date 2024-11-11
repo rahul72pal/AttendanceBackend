@@ -1,5 +1,5 @@
 const express = require("express");
-const { createClass } = require("../controllers/calss/class");
+const { createClass, getAllCalsses } = require("../controllers/calss/class");
 const { getAllStudentByClassInOrder } = require("../controllers/student/student");
 const router = express.Router();
 
@@ -17,5 +17,7 @@ router.post("/students/:classId", async (req, res) => {
       .json({ error: "An error occurred while retrieving students." });
   }
 });
+
+router.get('/getAll',getAllCalsses);
 
 module.exports = router;
