@@ -33,7 +33,21 @@ const getAllCalsses = async(req, res)=>{
   }
 }
 
+const getClassById = async(class_id)=>{
+  try {
+    const classobj = await Class.findById(class_id).select("name");
+    if (!classobj) {
+      return res.status(404).json({ message: "Class not found" });
+    }
+    return classobj;
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 module.exports ={
     createClass,
-    getAllCalsses
+    getAllCalsses,
+    getClassById
 }

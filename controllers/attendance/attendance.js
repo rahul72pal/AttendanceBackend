@@ -1,5 +1,6 @@
 const { getAllStudentByClassInOrder } = require("../student/student");
 const Attendance = require("../../models/attendance/attendanceModal");
+const { getClassById } = require("../calss/class");
 
 const saveAttendance = async (req, res) => {
   try {
@@ -7,8 +8,18 @@ const saveAttendance = async (req, res) => {
     const { date, class_id, attendance_data } = req.body;
 
     // Normalize the date to year-month-day
-    const normalizedDate = new Date(date);
-    normalizedDate.setUTCHours(0, 0, 0, 0); // Set hours, minutes, seconds, and milliseconds to zero
+    // Convert date string from req.body to a Date object
+    const parsedDate = new Date(date);
+
+    // Normalize the date to UTC
+    const normalizedDate = new Date(
+      Date.UTC(
+        parsedDate.getFullYear(),
+        parsedDate.getMonth(),
+        parsedDate.getDate()
+      )
+    );
+    // Set hours, minutes, seconds, and milliseconds to zero
 
     // Retrieve students sorted by roll_number and create a bit array
     const students = await getAllStudentByClassInOrder(class_id);
@@ -67,30 +78,42 @@ const getAttendance = async (req, res) => {
     // Retrieve students for the given class, ordered by roll_number
     const students = await getAllStudentByClassInOrder(class_id);
 
+    //retrive the class
+    const classobj = await getClassById(class_id);
+
     // Retrieve the attendance record for the given date and class_id
-    const attendanceRecord = await Attendance.findOne({
-      date: new Date(date),
-      class_id: class_id,
-    });
+    const queryDate = new Date(
+      Date.UTC(
+        new Date(date).getFullYear(),
+        new Date(date).getMonth(),
+        new Date(date).getDate()
+      )
+    );
+
+    const attendanceRecord = await Attendance.findOne(
+      { date: queryDate, class_id: class_id },
+      "attendance_data"
+    );
 
     if (!attendanceRecord) {
-      return res.status(404).json({
-        message: "Attendance not found for the specified date and class",
+      return res.status(200).json({
+        message: "Attendance not found for this Date",
       });
     }
 
-    // Decode the attendance string into an array of 0s and 1s
-    const attendanceBitArray = attendanceRecord.attendance_data.split("");
+    // Decode the attendance string into an array of booleans
+    const attendanceBitArray = attendanceRecord.attendance_data
+      .split("")
+      .map((bit) => bit === "1");
 
     // Map students to their attendance status
-    const studentResult = students.map((student, index) => {
-      return {
-        student_id: student._id,
-        name: student.name,
-        roll_number: student.roll_number,
-        present: attendanceBitArray[index] === "1", // Check if attendance is marked as '1' (present)
-      };
-    });
+    const studentResult = students.map((student, index) => ({
+      student_id: student.id,
+      name: student.name,
+      class_name: classobj.name,
+      roll_number: student.roll_number,
+      present: attendanceBitArray[index] || false,
+    }));
 
     res.status(200).json({ attendance: studentResult });
   } catch (error) {

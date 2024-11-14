@@ -1,5 +1,6 @@
 const Student = require("../../models/student/studentModal");
 const StudentClassMap = require("../../models/student/studentClassMap");
+const { ObjectId } = require("mongodb");
 
 const createStudent = async (req, res) => {
   try {
@@ -39,8 +40,11 @@ const createStudent = async (req, res) => {
 
     return res.status(201).json({
       message: "Student enrolled successfully",
-      student,
-      studentClassMap,
+      data: {
+        name: student.name,
+        roll_number: student.roll_number,
+        class_id: class_id,
+      },
     });
   } catch (error) {
     console.log(error);
@@ -50,26 +54,48 @@ const createStudent = async (req, res) => {
 
 const getAllStudentByClassInOrder = async (class_id) => {
   try {
-    const students = await StudentClassMap.find({ class_id: class_id })
-      .populate({
-        path: "student_id",
-        select: "name roll_number",
-      })
-      .sort({ "student_id.roll_number": 1 });
+    const studentsData = await StudentClassMap.aggregate([
+      { $match: { class_id: new ObjectId(class_id) } },
+      {
+        $lookup: {
+          from: "students",
+          localField: "student_id",
+          foreignField: "_id",
+          as: "studentDetails",
+        },
+      },
+      { $unwind: "$studentDetails" },
+      {
+        $project: {
+          "studentDetails._id": 1,
+          "studentDetails.name": 1,
+          "studentDetails.roll_number": 1,
+        },
+      },
+      { $sort: { "studentDetails.roll_number": 1 } },
+    ]);
 
     // Extract and format the student details from the populated data
-    const studentDetails = students.map((entry) => ({
-      id: entry.student_id._id,
-      name: entry.student_id.name,
-      roll_number: entry.student_id.roll_number,
+    const students = studentsData.map((entry) => ({
+      id: entry.studentDetails._id,
+      name: entry.studentDetails.name,
+      roll_number: entry.studentDetails.roll_number,
     }));
 
-    return studentDetails;
+    return students;
   } catch (error) {
     console.error("Error retrieving students by class:", error);
     throw error;
   }
 };
+
+// const getAllStudentByClassId = async(class_id)=>{
+//   try {
+//     const student = await
+//   } catch (error) {
+
+//   }
+// }
 
 module.exports = {
   createStudent,

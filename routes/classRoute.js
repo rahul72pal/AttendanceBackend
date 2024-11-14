@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.post("/create", createClass);
 
-router.post("/students/:classId", async (req, res) => {
+router.get("/students/:classId", async (req, res) => {
   const { classId } = req.params;
   try {
     const students = await getAllStudentByClassInOrder(classId);

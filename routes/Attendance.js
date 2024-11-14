@@ -3,7 +3,7 @@ const { saveAttendance, getAttendance, getStudentAttendance } = require('../cont
 const router = express.Router();
 
 router.post('/saveAttendance', saveAttendance);
-router.get('/get', getAttendance);
+router.post('/get', getAttendance);
 router.get('/getStudent', getStudentAttendance);
 
 module.exports = router;
