@@ -79,7 +79,7 @@ const getAttendance = async (req, res) => {
     const students = await getAllStudentByClassInOrder(class_id);
 
     //retrive the class
-    const classobj = await getClassById(class_id);
+    // const classobj = await getClassById(class_id);
 
     // Retrieve the attendance record for the given date and class_id
     const queryDate = new Date(
@@ -110,7 +110,6 @@ const getAttendance = async (req, res) => {
     const studentResult = students.map((student, index) => ({
       student_id: student.id,
       name: student.name,
-      class_name: classobj.name,
       roll_number: student.roll_number,
       present: attendanceBitArray[index] || false,
     }));
@@ -126,11 +125,12 @@ const getStudentAttendance = async (req, res) => {
   try {
     // Destructure class_id and student_id from the request body
     const { class_id, student_id } = req.body;
+    let attendanceCount = 0;
 
-    // Retrieve students for that class, ordered by roll number
+    // Retrieve the student list for the class
     const students = await getAllStudentByClassInOrder(class_id);
 
-    // Find the student index in the student list once
+    // Find the student index in the list
     const studentIndex = students.findIndex(
       (student) => student.id.toString() === student_id
     );
@@ -139,22 +139,35 @@ const getStudentAttendance = async (req, res) => {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    // Get all attendance records for the specified class, limiting data retrieval
+    // Retrieve attendance records for the class
     const attendanceRecords = await Attendance.find({ class_id: class_id })
-      .select("date attendance_data") // Only select necessary fields
-      .lean(); // Convert MongoDB docs to plain JavaScript objects
+      .select("date attendance_data")
+      .lean();
 
-    // Optimize attendance lookup: directly access the student status in the attendance string
+    // Process attendance data for the student
     const studentAttendance = attendanceRecords.map((record) => {
-      const present = record.attendance_data[studentIndex] === "1"; // Access bit directly
+      const date = new Date(record.date);
+
+      // Extract year, month, and day
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+
+      // Format the date as YYYY-MM-DD
+      const formattedDate = `${year}-${month}-${day}`;
+
+      if (record.attendance_data[studentIndex] === "1") {
+        attendanceCount++; // Increment the attendance count
+      }
+
       return {
-        date: record.date,
-        present: present,
+        date: formattedDate,
+        count: record.attendance_data[studentIndex] === "1" ? 1 : 0,
       };
     });
 
     // Return the student's attendance result
-    res.status(200).json({ student_id, attendance: studentAttendance });
+    res.status(200).json({ student_id, attendance: studentAttendance , attendanceCount: attendanceCount});
   } catch (error) {
     console.error("Error retrieving student attendance:", error);
     res

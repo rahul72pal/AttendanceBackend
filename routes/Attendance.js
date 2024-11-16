@@ -4,6 +4,6 @@ const router = express.Router();
 
 router.post('/saveAttendance', saveAttendance);
 router.post('/get', getAttendance);
-router.get('/getStudent', getStudentAttendance);
+router.post('/getStudent', getStudentAttendance);
 
 module.exports = router;

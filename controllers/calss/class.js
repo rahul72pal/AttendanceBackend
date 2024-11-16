@@ -37,12 +37,12 @@ const getClassById = async(class_id)=>{
   try {
     const classobj = await Class.findById(class_id).select("name");
     if (!classobj) {
-      return res.status(404).json({ message: "Class not found" });
+      return null;
     }
     return classobj;
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    return null;
   }
 }
 
