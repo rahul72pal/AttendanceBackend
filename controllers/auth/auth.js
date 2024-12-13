@@ -29,9 +29,10 @@ const loginUser = (req, res, next) => {
 
     // Set token in HTTP-only cookie
     res.cookie("access_token", token, {
+      domain: "attendancebackend-goxz.onrender.com",
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
+      sameSite: "None",
       maxAge: 7 * 24 * 3600000,
     });
 
