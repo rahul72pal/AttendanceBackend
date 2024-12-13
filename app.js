@@ -19,12 +19,12 @@ app.use(passport.initialize());
 app.use(express.urlencoded({ extended: true }));
 // Handle preflight requests
 app.options("*", cors({
-  origin: "https://students-nine-iota.vercel.app", // Allow your frontend domain
+  origin: ["https://students-nine-iota.vercel.app", "http://localhost:5173"], // Allow your frontend domain
   credentials: true, // Allow cookies and credentials
 }));
 
 app.use(cors({
-  origin: "https://students-nine-iota.vercel.app", // Only allow your frontend domain
+  origin: ["https://students-nine-iota.vercel.app", "http://localhost:5173"],  // Only allow your frontend domain
   credentials: true, // Allow cookies and credentials
   methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
   allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
