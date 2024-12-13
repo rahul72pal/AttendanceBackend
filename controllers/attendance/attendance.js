@@ -1,6 +1,7 @@
 const { getAllStudentByClassInOrder } = require("../student/student");
 const Attendance = require("../../models/attendance/attendanceModal");
 const { getClassById } = require("../calss/class");
+const { ObjectId } = require("mongodb");
 
 const saveAttendance = async (req, res) => {
   try {
@@ -167,7 +168,13 @@ const getStudentAttendance = async (req, res) => {
     });
 
     // Return the student's attendance result
-    res.status(200).json({ student_id, attendance: studentAttendance , attendanceCount: attendanceCount});
+    res
+      .status(200)
+      .json({
+        student_id,
+        attendance: studentAttendance,
+        attendanceCount: attendanceCount,
+      });
   } catch (error) {
     console.error("Error retrieving student attendance:", error);
     res
@@ -176,8 +183,54 @@ const getStudentAttendance = async (req, res) => {
   }
 };
 
+const getStudentsWithAttendance = async (class_id) => {
+  try {
+    // Fetch all attendance records for the class
+    const attendanceRecords = await Attendance.find({
+      class_id: new ObjectId(class_id),
+    })
+      .select("attendance_data")
+      .lean();
+
+    // Count the total number of attendance records
+    const totalClasses = attendanceRecords.length;
+
+    // If no attendance records exist, return students with 0% attendance
+    if (totalClasses === 0) {
+      const students = await getAllStudentByClassInOrder(class_id);
+      return students.map((student) => ({
+        ...student,
+        attendance_percentage: 0,
+      }));
+    }
+
+    // Fetch students for the class
+    const students = await getAllStudentByClassInOrder(class_id);
+
+    // Calculate attendance percentage for each student
+    const studentAttendance = students.map((student, index) => {
+      const presentCount = attendanceRecords.reduce((count, record) => {
+        return record.attendance_data[index] === "1" ? count + 1 : count;
+      }, 0);
+
+      const attendancePercentage = Math.floor((presentCount / totalClasses) * 100);
+
+      return {
+        ...student,
+        attendance_percentage: Number(attendancePercentage),
+      };
+    });
+
+    return studentAttendance;
+  } catch (error) {
+    console.error("Error retrieving students with attendance:", error);
+    throw error;
+  }
+};
+
 module.exports = {
   saveAttendance,
   getAttendance,
   getStudentAttendance,
+  getStudentsWithAttendance,
 };
