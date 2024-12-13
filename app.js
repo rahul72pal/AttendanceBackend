@@ -18,7 +18,7 @@ app.use(cookieParser());
 app.use(passport.initialize());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-  origin: ["http://localhost:5173","*", "https://students-nine-iota.vercel.app"],
+  origin: ["https://students-nine-iota.vercel.app","http://localhost:5173"],
   credentials: true,
 }))
 
