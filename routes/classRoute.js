@@ -20,6 +20,6 @@ router.get("/students/:classId", async (req, res) => {
   }
 });
 
-router.get('/getAll',authenticateJWT, getAllCalsses);
+router.get('/getAll', getAllCalsses);
 
 module.exports = router;
