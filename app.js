@@ -24,7 +24,7 @@ app.options("*", cors({
 }));
 
 app.use(cors({
-  origin: ["https://students-nine-iota.vercel.app", "http://localhost:5173"],  // Only allow your frontend domain
+  origin: ["https://students-nine-iota.vercel.app", "http://localhost:5173", "https://rahulattendanceapp.netlify.app"],  // Only allow your frontend domain
   credentials: true, // Allow cookies and credentials
   methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
   allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
