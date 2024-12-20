@@ -1,6 +1,7 @@
 const Student = require("../../models/student/studentModal");
 const StudentClassMap = require("../../models/student/studentClassMap");
 const { ObjectId } = require("mongodb");
+const studentModal = require("../../models/student/studentModal");
 
 const createStudent = async (req, res) => {
   try {
@@ -89,15 +90,26 @@ const getAllStudentByClassInOrder = async (class_id) => {
   }
 };
 
-// const getAllStudentByClassId = async(class_id)=>{
-//   try {
-//     const student = await
-//   } catch (error) {
+const getStudentDetailsById = async (roll_no, name) => {
+  try {
+    // Query the student model using both roll_no and name
+    const student = await studentModal.findOne({ roll_number: roll_no, name: name });
 
-//   }
-// }
+    if (!student) {
+      console.log("No student found!");
+      return null;
+    }
+
+    console.log(student._id.toString());
+    return student;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+}
 
 module.exports = {
   createStudent,
   getAllStudentByClassInOrder,
+  getStudentDetailsById
 };

@@ -1,5 +1,8 @@
+const attendanceModal = require('../../models/attendance/attendanceModal');
 const Class = require('../../models/class/classModal')
 const Teacher = require('../../models/user/teacherSchema');
+const { getAllStudentByClassInOrder } = require('../student/student');
+const { ObjectId } = require("mongodb");
 
 const createClass = async (req, res) => {
   try {
@@ -55,13 +58,30 @@ const getAllCalsses = async (req, res) => {
   }
 };
 
-const getClassById = async(class_id)=>{
+const getClassAllAttendance = async(class_id)=>{
   try {
-    const classobj = await Class.findById(class_id).select("name");
-    if (!classobj) {
-      return null;
+    if(!class_id){
+      return "Class Id Required"
     }
-    return classobj;
+    const students = await getAllStudentByClassInOrder(class_id);
+
+    if(!students){
+      return "No Student Found"
+    }
+
+    const attendance = await attendanceModal.find({class_id: new ObjectId(class_id)}).select("attendance_data date");
+
+    if(!attendance){
+      return "No Attendance Found"
+    }
+
+    const data = {
+      students: students,
+      attendance: attendance
+    }
+
+    return data;
+
   } catch (error) {
     console.log(error);
     return null;
@@ -71,5 +91,5 @@ const getClassById = async(class_id)=>{
 module.exports ={
     createClass,
     getAllCalsses,
-    getClassById
+    getClassAllAttendance
 }
